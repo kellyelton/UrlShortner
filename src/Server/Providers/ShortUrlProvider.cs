@@ -1,128 +1,85 @@
+using System.Text;
 using Microsoft.Data.Sqlite;
 
 namespace UrlShortener.Providers;
 
 public sealed class ShortUrlProvider
 {
+    private readonly Queue<string> _codes = new();
+    private readonly Random _rnd = new();
+    private readonly object _fillShortCodeQueueTaskLock = new();
+
+    private Task? _fillShortCodeQueueTask;
+
+    const string CODE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
     public ShortUrlProvider()
     {
+        FillShortCodeQueue();
     }
 
     public string Assign(string long_url)
     {
-        var query = @"
-            UPDATE AvailableShortCodes
-            SET is_available = false
-            WHERE short_code = (SELECT short_code FROM AvailableShortCodes where is_available = true ORDER BY RANDOM() LIMIT 1)
-            RETURNING short_code
-        ";
-
-        // Open the connection
         using var connection = new SqliteConnection("Data Source=data.db");
         connection.Open();
 
-        // Create the command
-        using var command = new SqliteCommand(query, connection);
+        while(true)
+        {
+            if (!_codes.TryDequeue(out var short_code)){
+                short_code = GenerateShortCode();
 
-        // Execute the command
-        using var reader = command.ExecuteReader();
+                FillShortCodeQueueInBackground();
+            }
 
-        // Read the result
-        reader.Read();
-        var short_code = reader.GetString(0);
+            using var cmd = new SqliteCommand("INSERT INTO short_urls (short_code, long_url) VALUES (@short_code, @long_url)", connection);
+            cmd.Parameters.AddWithValue("@short_code", short_code);
+            cmd.Parameters.AddWithValue("@long_url", long_url);
 
-        // Insert the long url and short code into the ShortUrls table
-        query = @"
-            INSERT INTO ShortUrls (long_url, short_code)
-            VALUES (@long_url, @short_code)
-        ";
-
-        // Create the command
-        using var command2 = new SqliteCommand(query, connection);
-
-        // Add the parameters
-        command2.Parameters.AddWithValue("@long_url", long_url);
-        command2.Parameters.AddWithValue("@short_code", short_code);
-
-        // Execute the command
-        command2.ExecuteNonQuery();
-
-        return short_code;
+            try
+            {
+                cmd.ExecuteNonQuery();
+                return short_code;
+            }
+            catch (SqliteException e) when (e.SqliteErrorCode == 19 && e.SqliteExtendedErrorCode == 1555)
+            {
+                // ignore duplicate key errors
+            }
+        }
     }
 
     public void InitializeDatabase(){
         using var con = new SqliteConnection("Data Source=data.db");
         con.Open();
 
-        var created = CreateAvailableShortCodesTable(con);
         CreateShortCodesTable(con);
-
-        if (created)
-            FillAvailableShortCodesTable(con);
     }
 
-    private void FillAvailableShortCodesTable(SqliteConnection con) {
-        Console.WriteLine(".");
+    private void FillShortCodeQueue(){
+        while (_codes.Count < 10000) {
+            var code = GenerateShortCode();
 
-        var tranny = con.BeginTransaction();
-
-        var i = 0;
-        foreach (var short_code in GenerateAllShortCodes().Take(1000000 * 10)){
-            // Insert the short code into the AvailableShortCodes table
-            var query = $@"
-                INSERT INTO AvailableShortCodes (short_code, is_available)
-                VALUES ('{short_code}', true)
-            ";
-
-            using var cmd = con.CreateCommand();
-            cmd.CommandText = query;
-
-            cmd.ExecuteNonQuery();
-
-            i++;
-
-            // Commit transaction every 1000 rows
-            if (i % 100000 == 0) {
-                tranny.Commit();
-                tranny.Dispose();
-                tranny = con.BeginTransaction();
-                Console.WriteLine(".");
-            }
-
+            if (!_codes.Contains(code.ToString()))
+                _codes.Enqueue(code.ToString());
         }
-
-        tranny.Commit();
-        tranny.Dispose();
     }
 
-    private bool DoesTableExist(SqliteConnection con, string table_name) {
-        var query = $@"
-            SELECT name FROM sqlite_master WHERE type='table' AND name='{table_name}'
-        ";
-
-        using var cmd = new SqliteCommand(query, con);
-        using var reader = cmd.ExecuteReader();
-
-        return reader.HasRows;
+    private void FillShortCodeQueueInBackground(){
+        // Store the task in the _fillShortCodeQueueTask field
+        // lock to make sure that only one task is running at a time
+        lock (_fillShortCodeQueueTaskLock){
+            if (_fillShortCodeQueueTask == null || _fillShortCodeQueueTask.IsCompleted)
+                _fillShortCodeQueueTask = Task.Run(FillShortCodeQueue);
+        }
     }
 
-    private bool CreateAvailableShortCodesTable(SqliteConnection con) {
-        if (DoesTableExist(con, "AvailableShortCodes"))
-            return false;
-
-        // short_code 7 char max pk
-        // is_available bool default(true)
-        var query = @"
-            CREATE TABLE IF NOT EXISTS AvailableShortCodes (
-                short_code TEXT PRIMARY KEY,
-                is_available BOOLEAN DEFAULT true
-            )
-        ";
-
-        using var cmd = new SqliteCommand(query, con);
-        var cnt = cmd.ExecuteNonQuery();
-
-        return true;
+    private string GenerateShortCode() {
+        var length = _rnd.Next(1, 7);
+        var code = new StringBuilder();
+        for (int j = 0; j < length; j++)
+        {
+            code.Append(CODE_CHARS[_rnd.Next(CODE_CHARS.Length)]);
+        }
+        return code.ToString();
     }
 
     private void CreateShortCodesTable(SqliteConnection con) {
@@ -144,39 +101,5 @@ public sealed class ShortUrlProvider
 
         using var cmd = new SqliteCommand(query, con);
         cmd.ExecuteNonQuery();
-    }
-
-    private IEnumerable<string> GenerateAllShortCodes()
-    {
-        var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-
-        for (var code_length = 1; code_length <= 7; code_length++)
-        {
-            foreach (var code in GenerateShortCodes(chars, code_length))
-            {
-                yield return code;
-            }
-        }
-    }
-
-    private IEnumerable<string> GenerateShortCodes(string chars, int code_length)
-    {
-        if (code_length == 1)
-        {
-            foreach (var c in chars)
-            {
-                yield return c.ToString();
-            }
-        }
-        else
-        {
-            foreach (var c in chars)
-            {
-                foreach (var code in GenerateShortCodes(chars, code_length - 1))
-                {
-                    yield return c + code;
-                }
-            }
-        }
     }
 }
