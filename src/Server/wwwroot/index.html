@@ -11,7 +11,11 @@
             request.setRequestHeader("Content-Type", "application/json");
             request.onreadystatechange = function () {
                 if (request.readyState === 4 && request.status === 200) {
-                    document.getElementById("result").innerHTML = request.responseText
+                    var response = request.responseText;
+                    var shortcode = response.replace(/['"]+/g, '');
+                    var shorturl = "https://fje.as/" + shortcode;
+                    document.getElementById("result").innerHTML = `<a href="${shorturl}">${shorturl}</a>`;
+                    document.getElementById("url").value = "";
                 }
             };
             request.send(JSON.stringify({ url: url }));
