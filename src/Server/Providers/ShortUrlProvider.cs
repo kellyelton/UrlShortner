@@ -23,15 +23,16 @@ public sealed class ShortUrlProvider
         using var connection = new SqliteConnection("Data Source=data.db");
         connection.Open();
 
-        while(true)
+        while (true)
         {
-            if (!_codes.TryDequeue(out var short_code)){
+            if (!_codes.TryDequeue(out var short_code))
+            {
                 short_code = GenerateShortCode();
 
                 FillShortCodeQueueInBackground();
             }
 
-            using var cmd = new SqliteCommand("INSERT INTO short_urls (short_code, long_url) VALUES (@short_code, @long_url)", connection);
+            using var cmd = new SqliteCommand("INSERT INTO ShortUrls (short_code, long_url) VALUES (@short_code, @long_url)", connection);
             cmd.Parameters.AddWithValue("@short_code", short_code);
             cmd.Parameters.AddWithValue("@long_url", long_url);
 
@@ -47,15 +48,18 @@ public sealed class ShortUrlProvider
         }
     }
 
-    public void InitializeDatabase(){
+    public void InitializeDatabase()
+    {
         using var con = new SqliteConnection("Data Source=data.db");
         con.Open();
 
         CreateShortCodesTable(con);
     }
 
-    private void FillShortCodeQueue(){
-        while (_codes.Count < 10000) {
+    private void FillShortCodeQueue()
+    {
+        while (_codes.Count < 10000)
+        {
             var code = GenerateShortCode();
 
             if (!_codes.Contains(code.ToString()))
@@ -63,16 +67,19 @@ public sealed class ShortUrlProvider
         }
     }
 
-    private void FillShortCodeQueueInBackground(){
+    private void FillShortCodeQueueInBackground()
+    {
         // Store the task in the _fillShortCodeQueueTask field
         // lock to make sure that only one task is running at a time
-        lock (_fillShortCodeQueueTaskLock){
+        lock (_fillShortCodeQueueTaskLock)
+        {
             if (_fillShortCodeQueueTask == null || _fillShortCodeQueueTask.IsCompleted)
                 _fillShortCodeQueueTask = Task.Run(FillShortCodeQueue);
         }
     }
 
-    private string GenerateShortCode() {
+    private string GenerateShortCode()
+    {
         var length = _rnd.Next(1, 7);
         var code = new StringBuilder();
         for (int j = 0; j < length; j++)
@@ -82,7 +89,8 @@ public sealed class ShortUrlProvider
         return code.ToString();
     }
 
-    private void CreateShortCodesTable(SqliteConnection con) {
+    private void CreateShortCodesTable(SqliteConnection con)
+    {
         // short_code 7 char max pk
         // long_url 2048 char max
         // access_count int default(0)
