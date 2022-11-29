@@ -1,37 +1,39 @@
 <html>
-    <head>
-        <title>Url Shortner</title>
-        <!-- JS to submit url to /api/generate and display the result in #result element -->
-        <script>
-            function submitUrl() {
-                var url = document.getElementById("url").value;
-                var request = new XMLHttpRequest();
-                request.open("POST", "/api/generate", true);
-                request.setRequestHeader("Content-Type", "application/json");
-                request.onreadystatechange = function () {
-                    if (request.readyState === 4 && request.status === 200) {
-                        var response = request.responseText;
-                        document.getElementById("result").innerHTML = response;
-                    }
-                };
-                request.send(JSON.stringify({ url: url }));
-            }
 
-            // Run code when page is loaded
-            window.onload = function () {
-                // Add event listener to submit button
-                document.getElementById("submit").addEventListener("click", submitUrl);
+<head>
+    <title>Url Shortner</title>
+    <!-- JS to submit url to /api/generate and display the result in #result element -->
+    <script>
+        function submitUrl() {
+            var url = document.getElementById("url").value;
+            var request = new XMLHttpRequest();
+            request.open("POST", "/api/generate", true);
+            request.setRequestHeader("Content-Type", "application/json");
+            request.onreadystatechange = function () {
+                if (request.readyState === 4 && request.status === 200) {
+                    document.getElementById("result").innerHTML = request.responseText
+                }
             };
-        </script>
-    </head>
-    <body>
-        <h1>Shorten Url</h1>
-        <!-- Submit form to api/generate -->
-        <div>
-            <input type="text" id="url" name="url" placeholder="Enter URL">
-            <input type="button" id="submit" value="Shorten">
-        </div>
-        <br/>
-        <div id="result"></div>
-    </body>
+            request.send(JSON.stringify({ url: url }));
+        }
+
+        // Run code when page is loaded
+        window.onload = function () {
+            // Add event listener to submit button
+            document.getElementById("submit").addEventListener("click", submitUrl);
+        };
+    </script>
+</head>
+
+<body>
+    <h1>Shorten Url</h1>
+    <!-- Submit form to api/generate -->
+    <div>
+        <input type="text" id="url" name="url" placeholder="Enter URL">
+        <input type="button" id="submit" value="Shorten">
+    </div>
+    <br />
+    <div id="result"></div>
+</body>
+
 </html>
