@@ -48,6 +48,24 @@ public sealed class ShortUrlProvider
         }
     }
 
+    public string? GetUrl(string short_code)
+    {
+        using var connection = new SqliteConnection("Data Source=data.db");
+        connection.Open();
+
+        using var cmd = new SqliteCommand("SELECT long_url FROM ShortUrls WHERE short_code = @short_code", connection);
+        cmd.Parameters.AddWithValue("@short_code", short_code);
+
+        using var reader = cmd.ExecuteReader();
+
+        if (reader.Read())
+        {
+            return reader.GetString(0);
+        }
+
+        return null;
+    }
+
     public void InitializeDatabase()
     {
         using var con = new SqliteConnection("Data Source=data.db");
