@@ -13,7 +13,7 @@
                 if (request.readyState === 4 && request.status === 200) {
                     var response = request.responseText;
                     var shortcode = response.replace(/['"]+/g, '');
-                    var shorturl = "https://fje.as/" + shortcode;
+                    var shorturl = "https://tny.wtf/" + shortcode;
                     document.getElementById("result").innerHTML = `<a href="${shorturl}">${shorturl}</a>`;
                     document.getElementById("url").value = "";
                 }
