@@ -15,11 +15,13 @@ app.Use(async (context, next) =>
 {
     var tracker = context.RequestServices.GetRequiredService<AnonPageViewTracker>();
 
+    // Domain name, without the port or scheme
+    var host = context.Request.Host.Host;
     var url = context.Request.Path.Value ?? "/";
     var ip = context.Connection.RemoteIpAddress.ToString();
     var user_agent = context.Request.Headers["User-Agent"].ToString();
 
-    tracker.Track(url, ip, user_agent);
+    tracker.Track(host, url, ip, user_agent);
 
     await next();
 });

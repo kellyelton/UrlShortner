@@ -76,7 +76,7 @@ public sealed class AnonPageViewTracker
         return salt.ToString();
     }
 
-    public void Track(string url, string ip, string useragent)
+    public void Track(string host, string url, string ip, string useragent)
     {
         var salt = GetSalt();
 
@@ -94,7 +94,7 @@ public sealed class AnonPageViewTracker
         // getting DDOSED or something.
         var hash = Hash(ip + useragent + salt);
 
-        var entry = $"{url} {DateTime.Now:yyyy-MM-dd HH:mm:ss} {hash}{Environment.NewLine}";
+        var entry = $"{host} {url} {DateTime.Now:yyyy-MM-dd HH:mm:ss} {hash}{Environment.NewLine}";
 
         // Open file, create if it doesn't exist. Read/Write lock it
         // so that multiple threads can't write to it at the same time.
