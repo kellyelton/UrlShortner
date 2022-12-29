@@ -21,16 +21,23 @@
             request.send(JSON.stringify({ url: url }));
         }
 
-        // Run code when page is loaded
         window.onload = function () {
-            // Add event listener to submit button
             document.getElementById("submit").addEventListener("click", submitUrl);
+
+            // get the domain name only
+            var hostname = window.location.hostname.split('.').slice(-2).join('.');
+
+            hostname = hostname.toUpperCase();
+
+            // set the hostname in the title
+            document.getElementById("host").innerHTML = hostname;
         };
     </script>
 </head>
 
 <body>
-    <h1>Url Shortener</h1>
+    <!-- span is always all caps -->
+    <h1><span id="host" style="color: #0c5fac"></span> <i style="color: #3f3f3f">url shortener</i></h1>
     <i>No Ads, no Tracking, and no Third Party Libraries</i>
     <br />
     <br />
