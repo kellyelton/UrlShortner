@@ -13,7 +13,7 @@
                 if (request.readyState === 4 && request.status === 200) {
                     var response = request.responseText;
                     var shortcode = response.replace(/['"]+/g, '');
-                    var shorturl = "https://tny.wtf/" + shortcode;
+                    var shorturl = window.location.origin + "/" + shortcode;
                     document.getElementById("result").innerHTML = `<a href="${shorturl}">${shorturl}</a>`;
                     document.getElementById("url").value = "";
                 }
@@ -30,7 +30,10 @@
 </head>
 
 <body>
-    <h1>Shorten Url</h1>
+    <h1>Url Shortener</h1>
+    <i>No Ads, no Tracking, and no Third Party Libraries</i>
+    <br />
+    <br />
     <!-- Submit form to api/generate -->
     <div>
         <input type="text" id="url" name="url" placeholder="Enter URL">
