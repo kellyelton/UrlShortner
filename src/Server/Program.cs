@@ -6,13 +6,28 @@ var builder = WebApplication.CreateBuilder(args);
 new ShortUrlProvider().InitializeDatabase();
 
 builder.Services.AddScoped<ShortUrlProvider>();
+builder.Services.AddScoped<AnonPageViewTracker>();
 
 var app = builder.Build();
+
+// capture every request and log the path and ip address
+app.Use(async (context, next) =>
+{
+    var tracker = context.RequestServices.GetRequiredService<AnonPageViewTracker>();
+
+    var url = context.Request.Path.Value ?? "/";
+    var ip = context.Connection.RemoteIpAddress.ToString();
+    var user_agent = context.Request.Headers["User-Agent"].ToString();
+
+    tracker.Track(url, ip, user_agent);
+
+    await next();
+});
 
 app.UseDefaultFiles();
 app.UseStaticFiles();
 
-app.MapGet("/api", () => "Hello World!");
+app.UseRouting();
 
 // create /api/genereate endpoint to take a url and return a short url
 app.MapPost("/api/generate", (ShortUrlRequest req, ShortUrlProvider shortener) =>
