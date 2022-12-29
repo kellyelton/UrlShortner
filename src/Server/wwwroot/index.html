@@ -15,7 +15,7 @@
                     var response = request.responseText;
                     var shortcode = response.replace(/['"]+/g, '');
                     var shorturl = window.location.origin + "/" + shortcode;
-                    document.getElementById("result").innerHTML = `<a href="${shorturl}" style="color: #0c5fac">${shorturl}</a>`;
+                    document.getElementById("result").innerHTML = `<a href="${shorturl}" style="color: #0c5fac;margin-left: 40px">${shorturl}</a>`;
                     document.getElementById("url").value = "";
                 }
             };
@@ -39,6 +39,14 @@
 
             // set the hostname in the title
             document.getElementById("host").innerHTML = hostname;
+
+            // When the user presses enter, submit the url
+            document.getElementById("url").addEventListener("keyup", function (event) {
+                if (event.keyCode === 13) {
+                    event.preventDefault();
+                    document.getElementById("submit").click();
+                }
+            });
         };
     </script>
 </head>
@@ -51,14 +59,12 @@
         <br />
         <br />
         <div>
-            <input type="text" id="url" name="url" placeholder="Enter URL" style="min-width: 220px;">
+            <input type="text" id="url" name="url" placeholder="Enter URL" style="min-width: 220px;" autofocus>
             <input type="button" id="submit" value="Shorten">
         </div>
         <br />
+        <br />
         <div id="result" style="min-height: 30px"></div>
-        <br />
-        <br />
-        <br />
         <br />
     </div>
     <hr style="margin: 0px;border: 1px solid #276fd7;"/>
