@@ -2,6 +2,7 @@
 
 <head>
     <title>Url Shortner</title>
+    <meta content='width=device-width, initial-scale=1' name='viewport'/>
     <!-- JS to submit url to /api/generate and display the result in #result element -->
     <script>
         function submitUrl() {
@@ -14,7 +15,7 @@
                     var response = request.responseText;
                     var shortcode = response.replace(/['"]+/g, '');
                     var shorturl = window.location.origin + "/" + shortcode;
-                    document.getElementById("result").innerHTML = `<a href="${shorturl}">${shorturl}</a>`;
+                    document.getElementById("result").innerHTML = `<a href="${shorturl}" style="color: #0c5fac">${shorturl}</a>`;
                     document.getElementById("url").value = "";
                 }
             };
@@ -42,19 +43,43 @@
     </script>
 </head>
 
-<body>
-    <!-- span is always all caps -->
-    <h1><span id="host" style="color: #0c5fac"></span> <i style="color: #3f3f3f">url shortener</i></h1>
-    <i>No Ads, No Third Party Trackers, and no BS.</i>
-    <br />
-    <br />
-    <!-- Submit form to api/generate -->
-    <div>
-        <input type="text" id="url" name="url" placeholder="Enter URL">
-        <input type="button" id="submit" value="Shorten">
+<body style="padding: 0px; margin:0px; background-color: #171026;">
+    <div id="main" style="padding: 1px 20px 20px 20px; background-color: white">
+        <h1 style="margin-bottom: 6px;"><span id="host" style="color: #0c5fac"></span> &nbsp;<i style="color: #3f3f3f; font-size: smaller">url shortener</i></h1>
+        <i style="color: #a3b5c5">&nbsp;&nbsp;No Ads, No Third Party Trackers, No BS</i>
+        <br />
+        <br />
+        <br />
+        <div>
+            <input type="text" id="url" name="url" placeholder="Enter URL" style="min-width: 220px;">
+            <input type="button" id="submit" value="Shorten">
+        </div>
+        <br />
+        <div id="result" style="min-height: 30px"></div>
+        <br />
+        <br />
+        <br />
+        <br />
     </div>
-    <br />
-    <div id="result"></div>
+    <hr style="margin: 0px;border: 1px solid #276fd7;"/>
+    <div id="footer" style="padding: 20px; margin: 0px;">
+        <div style="font-size: small;border: 6px solid #d74a4a;border-radius: 3px;background-color: #dfdaff;padding: 0px 20px;max-width: 500px; margin-top: 4px;">
+            <p style="font-size:large; font-weight: bold; color: #0c5fac">Help Support this Project</p>
+            <p>Hi there! I'm glad you're interested in this project.</p>
+            <p>I host this site at a loss and use no tracking or ads.</p>
+            <p>I believe we all deserve quality software that doesn't focus on investors, corporations and the bottom dollar...just a good solid user experience.</p>
+            <p>You can support this site by donating through the following platforms:</p>
+            <ul>
+                <li>
+                <a href="https://www.paypal.com/donate/?hosted_button_id=GJP29NBGZ33B4" style="color: #0c5fac">PayPal</a>
+                </li>
+                <li>
+                <a href="#" style="color: #0c5fac">GitHub Sponsorships</a> (coming soon!)
+                </li>
+            </ul>
+            <p>Thank you so much for using this site and all of your support! My family and I appreciate it greatly!</p>
+        </div>  
+    </div>
 </body>
 
 </html>
