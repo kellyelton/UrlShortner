@@ -44,9 +44,8 @@ app.MapGet("/{shortUrl}", (ShortUrlProvider provider, string shortUrl) =>
 {
     var url = provider.GetUrl(shortUrl);
 
-    if (string.IsNullOrWhiteSpace(url))
-    {
-        return Results.NotFound();
+    if (string.IsNullOrWhiteSpace(url)) {
+        return Results.Redirect("/", permanent: false);
     }
 
     // redirect to the long url
