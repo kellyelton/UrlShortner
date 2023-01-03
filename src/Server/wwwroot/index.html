@@ -9,6 +9,12 @@
     <script>
         function submitUrl() {
             var url = document.getElementById("url").value;
+            // If url null, empty, whitespace, or is not a valid url, return
+            if (!url || url.trim() === "") {
+                console.warn("url is null, empty, or whitespace");
+                return;
+            }
+
             var request = new XMLHttpRequest();
             request.open("POST", "/api/generate", true);
             request.setRequestHeader("Content-Type", "application/json");
