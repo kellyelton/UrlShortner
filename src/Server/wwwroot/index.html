@@ -3,6 +3,8 @@
 <head>
     <title>Url Shortner</title>
     <meta content='width=device-width, initial-scale=1' name='viewport'/>
+    <meta name="description" content="This is a URL shortening service that allows you to easily shorten and share long URLs.">
+    <meta name="keywords" content="URL shortener, short URL, share URL, tiny url, tny url, tny wtf, tiny wtf">
     <!-- JS to submit url to /api/generate and display the result in #result element -->
     <script>
         function submitUrl() {
@@ -49,6 +51,46 @@
             });
         };
     </script>
+<style>
+  /* Pop-up window styles */
+  .popup {
+    display: none;
+    position: absolute;
+    z-index: 1;
+    padding: 10px;
+    background-color: #f1f1f1;
+    border: 1px solid #d3d3d3;
+    border-radius: 6px;
+  }
+  .popup h2 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: bold;
+  }
+  .popup p {
+    margin: 5px 0 0 5px;
+    font-size: 12px;
+  }
+</style>
+<style>
+  /* Add some styling for the icon */
+  .new-window-icon {
+    font-size: 0.8em;
+    vertical-align: text-bottom;
+    margin-left: 0.2em; /* adjust the spacing between the icon and the text */
+  }
+</style>
+<script>
+  function popup(title, text) {
+    var popup = document.getElementById("popup");
+    document.getElementById("popup-title").innerHTML = title;
+    document.getElementById("popup-text").innerHTML = text;
+    popup.style.display = "block";
+  }
+  function hide() {
+    document.getElementById("popup").style.display = "none";
+  }
+</script>
 </head>
 
 <body style="padding: 0px; margin:0px; background-color: #171026;">
@@ -66,6 +108,13 @@
         <br />
         <div id="result" style="min-height: 30px"></div>
         <br />
+    <hr style="margin: 0px;border-top: 1px solid #91bdfa0c;"/>
+    <br />
+    <a href="https://pwd.guru" style="color: #0c5fac; text-decoration: none;" title="https://pwd.guru" target="_blank" onmouseover="popup('pwd.guru - Secure Password Generator', 'Generate a strong, unique password with our secure password generator')" onmouseout="hide()"><span class="new-window-icon">&#x1f310;</span> Get a Secure Password with Password Guru</a>
+        <div id="popup" class="popup">
+            <h2 id="popup-title"></h2>
+            <p id="popup-text"></p>
+        </div>
     </div>
     <hr style="margin: 0px;border: 1px solid #276fd7;"/>
     <div id="footer" style="padding: 20px; margin: 0px;">
