@@ -56,14 +56,16 @@ public sealed class ShortUrlProvider
         using var cmd = new SqliteCommand("SELECT long_url FROM ShortUrls WHERE short_code = @short_code", connection);
         cmd.Parameters.AddWithValue("@short_code", short_code);
 
-        using var reader = cmd.ExecuteReader();
+        var long_url = cmd.ExecuteScalar() as string;
 
-        if (reader.Read())
+        if (long_url != null)
         {
-            return reader.GetString(0);
+            using var updateCmd = new SqliteCommand("UPDATE ShortUrls SET access_count = access_count + 1 WHERE short_code = @short_code", connection);
+            updateCmd.Parameters.AddWithValue("@short_code", short_code);
+            updateCmd.ExecuteNonQuery();
         }
 
-        return null;
+        return long_url;
     }
 
     public void InitializeDatabase()
