@@ -68,6 +68,53 @@ public sealed class ShortUrlProvider
         return long_url;
     }
 
+    public IEnumerable<ShortUrl> All() {
+        using var connection = new SqliteConnection("Data Source=data.db");
+        connection.Open();
+
+        using var cmd = new SqliteCommand("SELECT short_code, long_url, access_count, created, last_accessed FROM ShortUrls", connection);
+
+        using var reader = cmd.ExecuteReader();
+
+        var all = new List<ShortUrl>();
+        while (reader.Read())
+        {
+            var s = new ShortUrl
+            {
+                ShortCode = reader.GetString(0),
+                LongUrl = reader.GetString(1),
+                AccessCount = reader.GetInt32(2),
+                Created = reader.GetDateTime(3),
+                LastAccessed = reader.GetDateTime(4)
+            };
+
+            all.Add(s);
+        }
+
+        return all;
+    }
+
+    public bool Delete(string short_code) {
+        using var connection = new SqliteConnection("Data Source=data.db");
+        connection.Open();
+
+        using var cmd = new SqliteCommand("DELETE FROM ShortUrls WHERE short_code = @short_code", connection);
+        cmd.Parameters.AddWithValue("@short_code", short_code);
+        
+        return cmd.ExecuteNonQuery() > 0;
+    }
+
+    public void UpdateUrl(string shortCode, string longUrl)
+    {
+        using var connection = new SqliteConnection("Data Source=data.db");
+        connection.Open();
+
+        using var cmd = new SqliteCommand("UPDATE ShortUrls SET long_url = @long_url WHERE short_code = @short_code", connection);
+        cmd.Parameters.AddWithValue("@short_code", shortCode);
+        cmd.Parameters.AddWithValue("@long_url", longUrl);
+        cmd.ExecuteNonQuery();
+    }
+
     public void InitializeDatabase()
     {
         using var con = new SqliteConnection("Data Source=data.db");

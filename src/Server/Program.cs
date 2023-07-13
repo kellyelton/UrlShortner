@@ -1,12 +1,24 @@
 using UrlShortener;
 using UrlShortener.Providers;
+using UrlShortener.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 new ShortUrlProvider().InitializeDatabase();
 
+builder.Configuration.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+builder.Configuration.AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true);
+
+builder.Services.AddOptions<CleanupOptions>()
+    .Configure<IConfiguration>((settings, configuration) =>
+    {
+        configuration.GetSection("Cleanup").Bind(settings);
+    });
+
 builder.Services.AddScoped<ShortUrlProvider>();
 builder.Services.AddScoped<AnonPageViewTracker>();
+
+builder.Services.AddHostedService<CleanupUrls>();
 
 var app = builder.Build();
 
@@ -34,7 +46,18 @@ app.UseRouting();
 // create /api/genereate endpoint to take a url and return a short url
 app.MapPost("/api/generate", (ShortUrlRequest req, ShortUrlProvider shortener) =>
 {
-    var short_url = shortener.Assign(req.Url);
+    var url = req.Url;
+    if (string.IsNullOrWhiteSpace(url)) {
+        return Results.BadRequest();
+    }
+
+    CleanupUrls.TryFix(ref url);
+
+    if (!CleanupUrls.IsValidUrl(url, out var reason)) {
+        return Results.BadRequest(reason); 
+    }
+
+    var short_url = shortener.Assign(url);
 
     return Results.Ok(short_url);
 });

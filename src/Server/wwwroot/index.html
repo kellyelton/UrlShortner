@@ -7,11 +7,19 @@
     <meta name="keywords" content="URL shortener, short URL, share URL, tiny url, tny url, tny wtf, tiny wtf">
     <!-- JS to submit url to /api/generate and display the result in #result element -->
     <script>
+      function showError(error) {
+        if (!error) {
+          document.getElementById("error-message").innerHTML = "";
+        } else {
+          document.getElementById("error-message").innerHTML = `Error - ${error}`;
+        }
+      }
+
         function submitUrl() {
             var url = document.getElementById("url").value;
             // If url null, empty, whitespace, or is not a valid url, return
             if (!url || url.trim() === "") {
-                console.warn("url is null, empty, or whitespace");
+                showError("Please enter a URL");
                 return;
             }
 
@@ -19,12 +27,19 @@
             request.open("POST", "/api/generate", true);
             request.setRequestHeader("Content-Type", "application/json");
             request.onreadystatechange = function () {
+                document.getElementById("result").innerHTML = "";
+                document.getElementById("error-message").innerHTML = "";
                 if (request.readyState === 4 && request.status === 200) {
                     var response = request.responseText;
                     var shortcode = response.replace(/['"]+/g, '');
                     var shorturl = window.location.origin + "/" + shortcode;
-                    document.getElementById("result").innerHTML = `<a href="${shorturl}" style="color: #0c5fac;margin-left: 40px">${shorturl}</a>`;
+                    document.getElementById("result").innerHTML = `<a href="${shorturl}" target="_blank" style="color: #0c5fac;margin-left: 40px">${shorturl}</a>`;
                     document.getElementById("url").value = "";
+                }
+                else if (request.readyState === 4 && request.status === 400) {
+                    var response = request.responseText;
+                    var error = response.replace(/['"]+/g, '');
+                    document.getElementById("error-message").innerHTML = `Error - ${error}`;
                 }
             };
             request.send(JSON.stringify({ url: url }));
@@ -58,45 +73,18 @@
         };
     </script>
 <style>
-  /* Pop-up window styles */
-  .popup {
-    display: none;
-    position: absolute;
-    z-index: 1;
-    padding: 10px;
-    background-color: #f1f1f1;
-    border: 1px solid #d3d3d3;
-    border-radius: 6px;
-  }
-  .popup h2 {
-    margin: 0;
-    font-size: 14px;
-    font-weight: bold;
-  }
-  .popup p {
-    margin: 5px 0 0 5px;
-    font-size: 12px;
-  }
-</style>
-<style>
   /* Add some styling for the icon */
   .new-window-icon {
     font-size: 0.8em;
     vertical-align: text-bottom;
     margin-left: 0.2em; /* adjust the spacing between the icon and the text */
   }
+  #error-message {
+    color: #d74a4a;
+    margin-left: 10px;
+    min-height: 1.2em;
+  }
 </style>
-<script>
-  function popup(title, text) {
-    var popup = document.getElementById("popup");
-    document.getElementById("popup-title").innerHTML = title;
-    document.getElementById("popup-text").innerHTML = text;
-    popup.style.display = "block";
-  }
-  function hide() {
-    document.getElementById("popup").style.display = "none";
-  }
-</script>
 </head>
 
 <body style="padding: 0px; margin:0px; background-color: #171026;">
@@ -112,6 +100,7 @@
         </div>
         <br />
         <br />
+        <div id="error-message"></div>
         <div id="result" style="min-height: 30px"></div>
         <br />
     <hr style="margin: 0px;border-top: 1px solid #91bdfa0c;"/>
